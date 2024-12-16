@@ -1,5 +1,5 @@
 from pyrogram import Client
-from pyrogram.errors import FloodWait
+from pyrogram.errors import FloodWait, PeerIdInvalid
 import time
 
 # Replace these with your own API details
@@ -12,9 +12,17 @@ app = Client(SESSION_NAME, api_id=API_ID, api_hash=API_HASH)
 
 async def remove_banned_users(channel_username):
     """
-    Unbans all users from a group or channel.
+    Unbans all banned users from a group or channel.
     """
     async with app:
+        try:
+            # Ensure we "meet" the channel first
+            chat = await app.get_chat(channel_username)
+            print(f"Successfully accessed channel/group: {chat.title}")
+        except PeerIdInvalid:
+            print("Error: The channel or group is invalid, or the user hasn't interacted with it yet.")
+            return
+
         # Fetch all banned members
         async for banned_member in app.get_chat_members(channel_username, filter="banned"):
             try:
